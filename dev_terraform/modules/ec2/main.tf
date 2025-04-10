@@ -9,7 +9,7 @@ resource "aws_instance" "star_command" {
 
 resource "aws_instance" "spock_inference" {
   ami           = "ami-0c55b159cbfafe1f0"
-  instance_type = "c8g.1xlarge"
+  instance_type = "m8g.large"
 
   tags = {
     Name = "example-spock_inference"

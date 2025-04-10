@@ -7,7 +7,8 @@ module "iam" {
 }
 
 module "sagemaker" {
-    source = "./modules/sagemaker"
+  source   = "./modules/sagemaker"
+  role_arn = module.iam.sagemaker_role_arn
 }
 
 module "ecr" {
@@ -15,8 +16,10 @@ module "ecr" {
 }
 
 module "emr" {
-    source = "./modules/emr"
-    emr_service_role_arn = module.iam.emr_service_role_arn
+  source = "./modules/emr"
+
+  emr_service_role_arn     = module.iam.emr_service_role_arn
+  emr_instance_profile_arn = module.iam.emr_instance_profile_arn
 }
 
 module "ec2" {
