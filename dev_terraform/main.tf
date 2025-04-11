@@ -1,3 +1,12 @@
+terraform {
+  backend "s3" {
+    bucket         = "spotpark-terraform-state-bucket"
+    key            = "spotdev/terraform.tfstate"  # acts like a file path in the bucket
+    region         = "us-west-1"
+    encrypt        = true                         # enable server-side encryption
+  }
+}
+
 module "s3" {
     source = "./modules/s3"
 }
