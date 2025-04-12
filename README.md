@@ -36,3 +36,32 @@ aws_profile = "test-profile-name-here"
 
 
 __In your root configuration (main.tf), you connect them__
+
+
+## Useful Terraform/AWS cli commands
+
+Reauthenticate device to AWS account (profile)
+```
+aws sso login --profile spot-dev
+```
+
+Check what AWS profile your device is set to
+```
+aws configure list | grep profile
+```
+
+Set your AWS profile on your device (assuming you have created a profile named spot-dev)
+```
+export AWS_PROFILE=spot-dev
+```
+
+For this error even after re-authenticating:
+```
+Error: validating provider credentials: retrieving caller identity from STS: operation error STS: GetCallerIdentity, https response error StatusCode: 403, RequestID: 7d279d3f-e390-4cb7-9b06-8a12a5cefe53, api error ExpiredToken: The security token included in the request is expired
+```
+...
+Reset your AWS credentials:
+```
+mv ~/.aws/credentials ~/.aws/credentials.backup
+
+```
