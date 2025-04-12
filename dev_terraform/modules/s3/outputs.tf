@@ -8,7 +8,7 @@ output "model_artifacts_bucket" {
   value       = aws_s3_bucket.model_artifacts.bucket
 }
 
-output "video_storage_bucket" {
+output "star_command_video_storage_bucket_name" {
   description = "Name of the video storage S3 bucket"
   value       = aws_s3_bucket.star_command_video_storage.bucket
 }
