@@ -42,3 +42,18 @@ module "sqs" {
 module "dynamodb" {
     source = "./modules/dynamodb"
 }
+
+module "apigateway" {
+    source                   = "./modules/apigateway"
+    star_command_ec2_public_ip = module.ec2.star_command_ec2_public_ip
+}
+
+output "star_command_instance_public_ip" {
+  description = "Public IP of the Star Command EC2 instance"
+  value       = module.ec2.star_command_ec2_public_ip
+}
+
+output "beam_me_sentry_api_gateway_url" {
+  description = "API Gateway URL for Beam Me Sentry"
+  value = module.apigateway.beam_me_sentry_api_gateway_url
+}
