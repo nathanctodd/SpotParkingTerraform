@@ -1,39 +1,30 @@
-provider "aws" {
-    region = "us-west-1"
+variable "model_registry_name" {
+  description = "Name of the S3 bucket to use as the model registry"
+  type        = string
 }
 
 resource "aws_s3_bucket" "model_registry" {
-    bucket = "spot-parking-model-registry"
-    acl    = "private"
+  bucket = var.model_registry_name
 
-    versioning {
-        enabled = true
-    }
-
-    tags = {
-        Name        = "ModelRegistry"
-        Environment = "Production"
-    }
+  tags = {
+    Name        = var.model_registry_name
+    Environment = "ml-model-registry"
+  }
 }
 
-resource "aws_dynamodb_table" "model_registry_metadata" {
-    name           = "ModelRegistryMetadata"
-    billing_mode   = "PAY_PER_REQUEST"
-    hash_key       = "ModelName"
-    range_key      = "Version"
+resource "aws_s3_bucket_public_access_block" "model_registry_block" {
+  bucket = aws_s3_bucket.model_registry.id
 
-    attribute {
-        name = "ModelName"
-        type = "S"
-    }
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
 
-    attribute {
-        name = "Version"
-        type = "S"
-    }
+resource "aws_s3_bucket_versioning" "model_registry_versioning" {
+  bucket = aws_s3_bucket.model_registry.id
 
-    tags = {
-        Name        = "ModelRegistryMetadata"
-        Environment = "Production"
-    }
+  versioning_configuration {
+    status = "Enabled"
+  }
 }
