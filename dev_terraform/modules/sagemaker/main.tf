@@ -1,3 +1,19 @@
+resource "aws_s3_bucket" "model_artifacts" {
+  bucket = "spot-model-artifacts-${random_id.suffix.hex}"
+  force_destroy = true
+}
+resource "random_id" "suffix" {
+  byte_length = 4
+}
+
+resource "aws_sagemaker_model_package_group" "spot-model-registry" {
+  model_package_group_name = "spot-model-registry"
+  model_package_group_description = "Model registry for vehicle detection, license plate detection, and license plate rectification models"
+  tags = {
+    environment = "dev"
+  }
+}
+
 resource "aws_sagemaker_notebook_instance" "inferencing_notebook" {
     name = "inferencing-notebook"
     instance_type = "ml.t2.medium"
@@ -68,15 +84,15 @@ resource "aws_sagemaker_endpoint_configuration" "license_plate_rectification_mod
 #Actual endpoints
 resource "aws_sagemaker_endpoint" "car_detection_model_endpoint" {
   name                 = "car-detection-model-endpoint"
-  endpoint_config_name = aws_sagemaker_endpoint_configuration.car-detection-model-endpoint-config.name
+  endpoint_config_name = aws_sagemaker_endpoint_configuration.car_detection_model_endpoint_config.name
 }
 
 resource "aws_sagemaker_endpoint" "license_plate_detection_model_endpoint" {
   name                 = "license-plate-detection-model-endpoint"
-  endpoint_config_name = aws_sagemaker_endpoint_configuration.license-plate-detection-model-endpoint-config.name
+  endpoint_config_name = aws_sagemaker_endpoint_configuration.license_plate_detection_model_endpoint_config.name
 }
 
 resource "aws_sagemaker_endpoint" "license_plate_rectification_model_endpoint" {
   name                 = "license-plate-rectification-model-endpoint"
-  endpoint_config_name = aws_sagemaker_endpoint_configuration.license-plate-rectification-model-endpoint-config.name
+  endpoint_config_name = aws_sagemaker_endpoint_configuration.license_plate_rectification_model_endpoint_config.name
 }
