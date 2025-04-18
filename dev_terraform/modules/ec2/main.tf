@@ -64,7 +64,7 @@ resource "aws_key_pair" "star_command_kp" {
   public_key = tls_private_key.star_command_key.public_key_openssh
 }
 
-resource "local_file" "private_key" {
+resource "local_file" "star_command_private_key" {
   content         = tls_private_key.star_command_key.private_key_pem
   filename        = "star_command.pem"
   file_permission = "0400"
@@ -72,8 +72,8 @@ resource "local_file" "private_key" {
 
 # AWS permissions
 
-resource "aws_iam_role" "star_command_ec2_role" {
-  name = "star_command_ec2_role"
+resource "aws_iam_role" "ec2_role" {
+  name = "ec2_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -119,28 +119,28 @@ resource "aws_iam_policy" "ec2_instance_connect_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "star_command_s3_access" {
-  role       = aws_iam_role.star_command_ec2_role.name
+  role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
 
 resource "aws_iam_role_policy_attachment" "star_command_sqs_access" {
-  role       = aws_iam_role.star_command_ec2_role.name
+  role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
 }
 
 resource "aws_iam_role_policy_attachment" "ec2_instance_connect_policy_attachment" {
   policy_arn = aws_iam_policy.ec2_instance_connect_policy.arn
-  role       = aws_iam_role.star_command_ec2_role.name
+  role       = aws_iam_role.ec2_role.name
 }
 
 resource "aws_iam_role_policy_attachment" "star_command_ecr_access" {
-  role       = aws_iam_role.star_command_ec2_role.name
+  role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
 resource "aws_iam_instance_profile" "star_command_ec2_profile" {
   name = "star_command_instance_profile"
-  role = aws_iam_role.star_command_ec2_role.name
+  role = aws_iam_role.ec2_role.name
 }
 
 data "aws_caller_identity" "current" {}
@@ -177,24 +177,140 @@ resource "aws_instance" "star_command_ec2" {
   }
 }
 
-# Spock Inference
+# Voyager Tracking
 
-# resource "aws_instance" "spock_inference" {
-#   ami           = "ami-020fbc00dbecba358"
-#   instance_type = "m8g.large"
+# Network access including SSH and HTTP/HTTPS for FastAPI
+resource "aws_security_group" "voyager_tracking_network_access" {
+  name        = "voyager_tracking_ssh"
+  description = "Allow SSH and FastAPI access from anywhere"
 
-#   tags = {
-#     Name = "example-spock_inference"
-#   }
-# }
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # SSH from anywhere (not recommended for production)
+  }
 
-# # Event Manager
+  ingress {
+    from_port   = 8000
+    to_port     = 8000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # HTTP (FastAPI on port 80)
+  }
 
-# resource "aws_instance" "kirk_event_manager" {
-#   ami           = "ami-020fbc00dbecba358"
-#   instance_type = "t3.small"
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # HTTPS (if you use SSL)
+  }
 
-#   tags = {
-#     Name = "kirk_event_manager"
-#   }
-# }
+  # If your FastAPI runs on a custom port (e.g., 8000 or 5000), add:
+  ingress {
+    from_port   = 8000
+    to_port     = 8000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "tls_private_key" "voyager_tracking_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "aws_key_pair" "voyager_tracking_kp" {
+  key_name   = "voyager_tracking_key"
+  public_key = tls_private_key.voyager_tracking_key.public_key_openssh
+}
+
+resource "local_file" "voyager_tracking_private_key" {
+  content         = tls_private_key.voyager_tracking_key.private_key_pem
+  filename        = "voyager_tracking.pem"
+  file_permission = "0400"
+}
+
+# AWS permissions
+
+resource "aws_iam_role_policy_attachment" "voyager_tracking_s3_access" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "voyager_tracking_sqs_access" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "voyager_tracking_ec2_instance_connect_policy_attachment" {
+  policy_arn = aws_iam_policy.ec2_instance_connect_policy.arn
+  role       = aws_iam_role.ec2_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "voyager_tracking_ecr_access" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
+resource "aws_iam_instance_profile" "voyager_tracking_ec2_profile" {
+  name = "voyager_tracking_instance_profile"
+  role = aws_iam_role.ec2_role.name
+}
+
+resource "aws_instance" "voyager_tracking_ec2" {
+  ami                    = "ami-067198c5ae913ba30" # Amazon Linux 2 AMI
+  instance_type          = "t2.micro" # Change to bigger instance type if needed
+  iam_instance_profile   = aws_iam_instance_profile.voyager_tracking_ec2_profile.name
+  key_name               = aws_key_pair.voyager_tracking_kp.key_name
+  vpc_security_group_ids = [aws_security_group.star_command_network_access.id]
+
+  user_data = <<-EOF
+              #!/bin/bash
+              yum update -y
+              amazon-linux-extras install docker -y
+              service docker start
+              usermod -a -G docker ec2-user
+
+              # Install AWS CLI v2
+              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip awscliv2.zip
+              sudo ./aws/install
+
+              # Log in to ECR
+              $(aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com)
+
+              # Pull and run your Docker image
+              docker pull ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.voyager_tracking_image_name}:latest
+              docker run -d -p 80:8000 ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.voyager_tracking_image_name}:latest
+              EOF
+
+  tags = {
+    Name = "voyager_tracking"
+  }
+}
+
+
+# Event Manager
+
+resource "aws_instance" "kirk_event_manager" {
+  ami           = "ami-020fbc00dbecba358"
+  instance_type = "t3.small"
+
+  tags = {
+    Name = "kirk_event_manager"
+  }
+}

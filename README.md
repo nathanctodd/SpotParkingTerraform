@@ -70,5 +70,7 @@ mv ~/.aws/credentials ~/.aws/credentials.backup
 ## Connecting to an EC2 instance in AWS
 
 ```
-./connect_to_ec2.sh star_command
+./connect_to_ec2.sh {name_of_ec2}
 ```
+
+Or you can use EC2 connect in the AWS console under the EC2 section
