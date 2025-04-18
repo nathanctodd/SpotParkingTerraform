@@ -14,21 +14,21 @@ resource "aws_security_group" "star_command_network_access" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # SSH from anywhere (not recommended for production)
+    cidr_blocks = ["0.0.0.0/0"] # SSH from anywhere (not recommended for production)
   }
 
   ingress {
     from_port   = 8000
     to_port     = 8000
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # HTTP (FastAPI on port 80)
+    cidr_blocks = ["0.0.0.0/0"] # HTTP (FastAPI on port 80)
   }
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # HTTPS (if you use SSL)
+    cidr_blocks = ["0.0.0.0/0"] # HTTPS (if you use SSL)
   }
 
   # If your FastAPI runs on a custom port (e.g., 8000 or 5000), add:
@@ -65,8 +65,8 @@ resource "aws_key_pair" "star_command_kp" {
 }
 
 resource "local_file" "private_key" {
-  content  = tls_private_key.star_command_key.private_key_pem
-  filename = "star_command.pem"
+  content         = tls_private_key.star_command_key.private_key_pem
+  filename        = "star_command.pem"
   file_permission = "0400"
 }
 
@@ -90,29 +90,29 @@ resource "aws_iam_role" "star_command_ec2_role" {
 resource "aws_iam_policy" "ec2_instance_connect_policy" {
   name        = "EC2InstanceConnectPolicy"
   description = "Policy to allow EC2 Instance Connect SSH access"
-  policy      = jsonencode({
+  policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Sid: "EC2InstanceConnect",
+        Sid : "EC2InstanceConnect",
         Effect   = "Allow"
         Action   = "ec2-instance-connect:SendSSHPublicKey"
         Resource = "*"
       },
       {
-        Sid: "SSHPublicKey",
+        Sid : "SSHPublicKey",
         Effect   = "Allow"
         Action   = "ec2-instance-connect:OpenTunnel"
         Resource = "*"
       },
       {
-        Sid: "Describe",
-        Effect   = "Allow"
-        "Action": [
-            "ec2:DescribeInstances",
-            "ec2:DescribeInstanceConnectEndpoints"
+        Sid : "Describe",
+        Effect = "Allow"
+        "Action" : [
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceConnectEndpoints"
         ],
-        "Resource": "*"
+        "Resource" : "*"
       }
     ]
   })
