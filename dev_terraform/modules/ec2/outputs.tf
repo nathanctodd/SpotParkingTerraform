@@ -13,6 +13,11 @@ output "voyager_tracking_ec2_public_ip" {
   value       = aws_instance.voyager_tracking_ec2.public_ip
 }
 
+output "kirk_event_manager_ec2_public_ip" {
+  description = "Public IP of the Kirk Event Manager EC2 instance"
+  value       = aws_instance.voyager_tracking_ec2.public_ip
+}
+
 # output "spock_inference_instance_id" {
 #   description = "ID of the Spock Inference EC2 instance"
 #   value       = aws_instance.spock_inference.id

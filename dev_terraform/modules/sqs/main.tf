@@ -12,7 +12,7 @@ resource "aws_sqs_queue" "voyager_tracking_queue" {
 
 # Creation of SQS queue into event manager system
 resource "aws_sqs_queue" "kirk_event_manager_queue" {
-  name                       = "kirk-event-managerqueue"
+  name                       = "kirk-event-manager-queue"
   delay_seconds              = 0
   message_retention_seconds  = 86400
   visibility_timeout_seconds = 30
