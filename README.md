@@ -65,3 +65,10 @@ Reset your AWS credentials:
 mv ~/.aws/credentials ~/.aws/credentials.backup
 
 ```
+
+
+## Connecting to an EC2 instance in AWS
+
+```
+./connect_to_ec2.sh star_command
+```

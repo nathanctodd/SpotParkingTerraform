@@ -1,18 +1,18 @@
 terraform {
   backend "s3" {
-    bucket         = "spotpark-terraform-state-bucket"
-    key            = "spotdev/terraform.tfstate"  # acts like a file path in the bucket
-    region         = "us-west-1"
-    encrypt        = true                         # enable server-side encryption
+    bucket  = "spotpark-terraform-state-bucket"
+    key     = "spotdev/terraform.tfstate" # acts like a file path in the bucket
+    region  = "us-west-1"
+    encrypt = true # enable server-side encryption
   }
 }
 
 module "s3" {
-    source = "./modules/s3"
+  source = "./modules/s3"
 }
 
 module "iam" {
-    source = "./modules/iam"
+  source = "./modules/iam"
 }
 
 module "sagemaker" {
@@ -21,7 +21,7 @@ module "sagemaker" {
 }
 
 module "ecr" {
-    source = "./modules/ecr"
+  source = "./modules/ecr"
 }
 
 module "emr" {
@@ -32,13 +32,28 @@ module "emr" {
 }
 
 module "ec2" {
-    source = "./modules/ec2"
+  source = "./modules/ec2"
 }
 
 module "sqs" {
-    source = "./modules/sqs"
+  source = "./modules/sqs"
 }
 
 module "dynamodb" {
-    source = "./modules/dynamodb"
+  source = "./modules/dynamodb"
+}
+
+module "apigateway" {
+  source                     = "./modules/apigateway"
+  star_command_ec2_public_ip = module.ec2.star_command_ec2_public_ip
+}
+
+output "star_command_instance_public_ip" {
+  description = "Public IP of the Star Command EC2 instance"
+  value       = module.ec2.star_command_ec2_public_ip
+}
+
+output "beam_me_sentry_api_gateway_url" {
+  description = "API Gateway URL for Beam Me Sentry"
+  value       = module.apigateway.beam_me_sentry_api_gateway_url
 }
