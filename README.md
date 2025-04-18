@@ -67,8 +67,64 @@ mv ~/.aws/credentials ~/.aws/credentials.backup
 ```
 
 
-## Connecting to an EC2 instance in AWS
+# Connecting to an EC2 instance in AWS
 
 ```
-./connect_to_ec2.sh star_command
+./connect_to_ec2.sh {name_of_ec2}
 ```
+EC2 Options
+- star-command
+- voyager-tracking
+- kirk-event-manager
+
+Or you can use EC2 connect in the AWS console under the EC2 section
+
+
+## Pull Latest Image & Restart Container
+
+### Authenticate with ECR
+Make sure you're authenticated with ECR using the AWS CLI:
+```bash
+aws ecr get-login-password --region us-west-1 | \
+docker login --username AWS --password-stdin 442426871585.dkr.ecr.us-west-1.amazonaws.com
+```
+
+*Note: The dev AWS account id is `442426871585`*
+
+### Pull the latest image
+```bash
+docker pull 442426871585.dkr.ecr.us-west-1.amazonaws.com/voyager-tracking:latest
+```
+
+### Stop and remove the current container
+Find the container:
+```bash
+docker ps # or docker ps -a
+```
+
+Then stop and remove it:
+```bash
+docker stop voyager-tracking
+docker rm voyager-tracking
+```
+*Note: Replace `voyager-tracking` with your actual container name if it's different.*
+
+### Run the container again
+Assuming you want to run it detached and possibly map ports:
+```bash
+docker run -d --name voyager-tracking \
+-p 80:8000 \
+{image-uri}:latest
+```
+
+A working formatted version:
+```bash
+docker run -d --name voyager-tracking \
+-p 80:8000 \
+442426871585.dkr.ecr.us-west-1.amazonaws.com/voyager-tracking:latest
+``
+
+
+*Adjust volumes, environment variables, or other flags as needed*
+
+

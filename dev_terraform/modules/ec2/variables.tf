@@ -15,3 +15,16 @@ variable "star_command_image_name" {
   type        = string
   default     = "star-command"
 }
+
+variable "voyager_tracking_image_name" {
+  description = "The name of the Docker image to be used in the EC2 instance"
+  type        = string
+  default     = "voyager-tracking"
+}
+
+variable "kirk_event_manager_image_name" {
+  description = "The name of the Docker image to be used in the EC2 instance"
+  type        = string
+  default     = "kirk-event-manager"
+  
+}

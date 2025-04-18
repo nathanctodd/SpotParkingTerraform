@@ -1,13 +1,13 @@
 resource "aws_ecr_repository" "star_command" {
-  name = "star_command"
+  name = "star-command"
 }
 
-resource "aws_ecr_repository" "inference_system" {
-  name = "inference_system"
+resource "aws_ecr_repository" "voyager_tracking" {
+  name = "voyager-tracking"
 }
 
 resource "aws_ecr_repository" "event_manager" {
-  name = "event_manager"
+  name = "event-manager"
 }
 
 resource "aws_ecr_lifecycle_policy" "star_command_policy" {
@@ -33,8 +33,8 @@ resource "aws_ecr_lifecycle_policy" "star_command_policy" {
   EOF
 }
 
-resource "aws_ecr_lifecycle_policy" "inference_system_policy" {
-  repository = aws_ecr_repository.inference_system.name
+resource "aws_ecr_lifecycle_policy" "voyager_tracking_policy" {
+  repository = aws_ecr_repository.voyager_tracking.name
 
   policy = <<EOF
     {

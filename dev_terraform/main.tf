@@ -48,9 +48,22 @@ module "apigateway" {
   star_command_ec2_public_ip = module.ec2.star_command_ec2_public_ip
 }
 
+# TODO: Uncomment and configure the ECS module when ready
+# module "ecs" {
+#   source = "./modules/ecs"
+#   aws_region                = "us-west-1"
+#   star_command_queue_arn    = module.sqs.star_command_queue_arn
+#   kirk_event_manager_queue_arn = module.sqs.kirk_event_manager_queue_arn
+# }
+
 output "star_command_instance_public_ip" {
   description = "Public IP of the Star Command EC2 instance"
   value       = module.ec2.star_command_ec2_public_ip
+}
+
+output "voyager_tracking_instance_public_ip" {
+  description = "Public IP of the Voyager Tracking EC2 instance"
+  value       = module.ec2.voyager_tracking_ec2_public_ip
 }
 
 output "beam_me_sentry_api_gateway_url" {

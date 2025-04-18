@@ -2,7 +2,11 @@
 
 # Check if the parameter is provided
 if [ -z "$1" ]; then
-    echo "Usage: $0 <key_name>"
+    echo "Usage: $0 <key_name>\n"
+    echo "EC2 Options:"
+    echo "- star-command"
+    echo "- voyager-tracking"
+    echo "- kirk-event-manager"
     exit 1
 fi
 
