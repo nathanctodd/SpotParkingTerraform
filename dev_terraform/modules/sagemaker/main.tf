@@ -125,54 +125,63 @@ resource "aws_sagemaker_endpoint" "car_detect_endpoint" {
   }
 }
 
+resource "aws_sagemaker_data_quality_job_definition" "car_detect_job_def" {
+  name     = "car-detect-monitor-job"
+  role_arn = aws_iam_role.sagemaker_monitor_role.arn
+
+  data_quality_app_specification {
+    image_uri = "156387875391.dkr.ecr.us-west-1.amazonaws.com/sagemaker-model-monitor-analyzer"
+  }
+
+  data_quality_baseline_config {
+    constraints_resource {
+      s3_uri = "s3://${aws_s3_bucket.model_artifacts.bucket}/baselines/car_detect/constraints.json"
+    }
+    statistics_resource {
+      s3_uri = "s3://${aws_s3_bucket.model_artifacts.bucket}/baselines/car_detect/statistics.json"
+    }
+  }
+
+  data_quality_job_input {
+    endpoint_input {
+      endpoint_name              = aws_sagemaker_endpoint.car_detect_endpoint.name
+      local_path                 = "/opt/ml/processing/input"
+      s3_input_mode              = "File"
+      s3_data_distribution_type = "FullyReplicated"
+    }
+  }
+
+  data_quality_job_output_config {
+    monitoring_outputs {
+      s3_output {
+        s3_uri = "s3://${aws_s3_bucket.model_artifacts.bucket}/monitoring-output/car_detect/"
+      }
+    }
+  }
+
+  job_resources {
+    cluster_config {
+      instance_count     = 1
+      instance_type      = "ml.m5.large"
+      volume_size_in_gb = 20
+    }
+  }
+
+  stopping_condition {
+    max_runtime_in_seconds = 1800
+  }
+}
+
+
 resource "aws_sagemaker_monitoring_schedule" "car_detect_data_quality_monitoring" {
   name = "car-detect-monitoring-schedule"
 
   monitoring_schedule_config {
+    monitoring_type                = "DataQuality"
+    monitoring_job_definition_name = aws_sagemaker_data_quality_job_definition.car_detect_job_def.name
+
     schedule_config {
-      schedule_expression = "cron(0 * ? * * *)" # Run every hour
-    }
-
-    monitoring_job_definition {
-      baseline_config {
-        constraints_resource {
-          s3_uri = "s3://${aws_s3_bucket.model_artifacts.bucket}/baselines/car_detect/constraints.json"
-        }
-        statistics_resource {
-          s3_uri = "s3://${aws_s3_bucket.model_artifacts.bucket}/baselines/car_detect/statistics.json"
-        }
-      }
-
-      monitoring_inputs {
-        endpoint_input {
-          endpoint_name              = aws_sagemaker_endpoint.car_detect_endpoint.name
-          local_path                 = "/opt/ml/processing/input"
-          s3_input_mode              = "File"
-          s3_data_distribution_type = "FullyReplicated"
-        }
-      }
-
-      monitoring_output_config {
-        monitoring_outputs {
-          s3_output {
-            s3_uri = "s3://${aws_s3_bucket.model_artifacts.bucket}/monitoring-output/car_detect/"
-          }
-        }
-      }
-
-      monitoring_resources {
-        cluster_config {
-          instance_count     = 1
-          instance_type      = "ml.m5.large"
-          volume_size_in_gb = 20
-        }
-      }
-
-      role_arn = aws_iam_role.sagemaker_monitor_role.arn
-
-      stopping_condition {
-        max_runtime_in_seconds = 1800
-      }
+      schedule_expression = "cron(0 * ? * * *)"
     }
   }
 }
@@ -220,11 +229,6 @@ resource "aws_sagemaker_endpoint" "lpr_detect_endpoint" {
   tags = {
     environment = "dev"
   }
-}
-
-# Generate a random suffix for unique naming
-resource "random_id" "suffix" {
-  byte_length = 4
 }
 
 # Create S3 bucket for feature store
