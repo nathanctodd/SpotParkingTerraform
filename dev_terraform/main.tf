@@ -1,9 +1,26 @@
+# Create a DynamoDB table for Terraform state locking
+resource "aws_dynamodb_table" "terraform_state_lock" {
+  name         = "terraform-state-lock"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+
+  tags = {
+    Name = "Terraform State Lock Table"
+  }
+}
+
 terraform {
   backend "s3" {
-    bucket  = "spotpark-terraform-state-bucket"
-    key     = "spotdev/terraform.tfstate" # acts like a file path in the bucket
-    region  = "us-west-1"
-    encrypt = true # enable server-side encryption
+    bucket         = "spotpark-terraform-state-bucket"
+    key            = "spotdev/terraform.tfstate" # acts like a file path in the bucket
+    region         = "us-west-1"
+    encrypt        = true # enable server-side encryption
+    dynamodb_table = "terraform-state-lock" # use DynamoDB for state locking
   }
 }
 
