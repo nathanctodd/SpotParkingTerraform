@@ -144,9 +144,9 @@ resource "aws_sagemaker_data_quality_job_definition" "car_detect_job_def" {
 
   data_quality_job_input {
     endpoint_input {
-      endpoint_name              = aws_sagemaker_endpoint.car_detect_endpoint.name
-      local_path                 = "/opt/ml/processing/input"
-      s3_input_mode              = "File"
+      endpoint_name             = aws_sagemaker_endpoint.car_detect_endpoint.name
+      local_path                = "/opt/ml/processing/input"
+      s3_input_mode             = "File"
       s3_data_distribution_type = "FullyReplicated"
     }
   }
@@ -161,8 +161,8 @@ resource "aws_sagemaker_data_quality_job_definition" "car_detect_job_def" {
 
   job_resources {
     cluster_config {
-      instance_count     = 1
-      instance_type      = "ml.m5.large"
+      instance_count    = 1
+      instance_type     = "ml.m5.large"
       volume_size_in_gb = 20
     }
   }
@@ -196,7 +196,7 @@ resource "aws_sagemaker_model" "lpr_detect_model" {
   execution_role_arn = aws_iam_role.sagemaker_execution_role.arn
 
   primary_container {
-    image = "${data.aws_ecr_repository.lpr_detect.repository_url}@sha256:3968811d6c38e4e251bc4cd54f3b3a26eb0c2b2730db5434b2c85ab9ab54ef17"
+    image = "${data.aws_ecr_repository.lpr_detect.repository_url}@sha256:8d905c6e8b509a14f1b251bd2756aff894296684b311611ed404221d460c9eb7"
     # If your model is contained in the Docker image, you don't need model_data_url
   }
 
