@@ -239,26 +239,26 @@ resource "aws_iam_role_policy_attachment" "feature_store_attach" {
 # SageMaker Feature Group
 resource "aws_sagemaker_feature_group" "image_metadata" {
   feature_group_name             = "car-detections-feature-group"
-  record_identifier_feature_name = "image_id"
-  event_time_feature_name        = "processing_time"
+  record_identifier_feature_name = "s3_path"
+  event_time_feature_name        = "timestamp"
   role_arn                       = aws_iam_role.sagemaker_feature_store.arn
   description                    = "Stores image metadata and bounding boxes"
 
   feature_definition {
-    feature_name = "image_id"
+    feature_name = "camera"
     feature_type = "String"
   }
   feature_definition {
-    feature_name = "processing_time"
+    feature_name = "timestamp"
     feature_type = "String" # ISO 8601 timestamp
   }
   feature_definition {
-    feature_name = "s3_image_uri"
+    feature_name = "s3_path"
     feature_type = "String"
   }
   feature_definition {
-    feature_name = "bounding_boxes"
-    feature_type = "String"
+    feature_name = "bboxes"
+    feature_type = "String" # JSON string of bounding boxes
   }
 
   offline_store_config {
