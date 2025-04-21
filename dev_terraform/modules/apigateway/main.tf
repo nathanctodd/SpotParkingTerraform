@@ -1,6 +1,11 @@
 resource "aws_api_gateway_rest_api" "beam_me_sentry_api_gateway" {
   name        = "beam_me_sentry_api_gateway"
   description = "API Gateway that proxies to Star Command EC2"
+
+  binary_media_types = [
+    "multipart/form-data",
+    "application/octet-stream"
+  ]
 }
 
 resource "aws_api_gateway_resource" "api_resource" {
@@ -30,7 +35,7 @@ resource "aws_api_gateway_integration" "http_integration" {
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.star_command_ec2_public_ip}/beam-me-up"
   passthrough_behavior    = "WHEN_NO_MATCH"
-  content_handling        = "CONVERT_TO_TEXT"
+  content_handling        = "CONVERT_TO_BINARY"
   request_parameters = {
     "integration.request.header.Content-Type" = "method.request.header.Content-Type",
     "integration.request.header.X-API-Key"    = "method.request.header.X-API-Key"
