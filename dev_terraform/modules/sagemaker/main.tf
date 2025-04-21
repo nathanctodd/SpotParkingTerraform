@@ -7,6 +7,10 @@ resource "random_id" "suffix" {
   byte_length = 4
 }
 
+resource "random_id" "feature_store_suffix" {
+  byte_length = 4
+}
+
 resource "aws_sagemaker_model_package_group" "spot-model-registry" {
   model_package_group_name        = "spot-model-registry"
   model_package_group_description = "Model registry for vehicle detection, license plate detection, and license plate rectification models"
@@ -125,67 +129,6 @@ resource "aws_sagemaker_endpoint" "car_detect_endpoint" {
   }
 }
 
-resource "aws_sagemaker_data_quality_job_definition" "car_detect_job_def" {
-  name     = "car-detect-monitor-job"
-  role_arn = aws_iam_role.sagemaker_monitor_role.arn
-
-  data_quality_app_specification {
-    image_uri = "156387875391.dkr.ecr.us-west-1.amazonaws.com/sagemaker-model-monitor-analyzer"
-  }
-
-  data_quality_baseline_config {
-    constraints_resource {
-      s3_uri = "s3://${aws_s3_bucket.model_artifacts.bucket}/baselines/car_detect/constraints.json"
-    }
-    statistics_resource {
-      s3_uri = "s3://${aws_s3_bucket.model_artifacts.bucket}/baselines/car_detect/statistics.json"
-    }
-  }
-
-  data_quality_job_input {
-    endpoint_input {
-      endpoint_name             = aws_sagemaker_endpoint.car_detect_endpoint.name
-      local_path                = "/opt/ml/processing/input"
-      s3_input_mode             = "File"
-      s3_data_distribution_type = "FullyReplicated"
-    }
-  }
-
-  data_quality_job_output_config {
-    monitoring_outputs {
-      s3_output {
-        s3_uri = "s3://${aws_s3_bucket.model_artifacts.bucket}/monitoring-output/car_detect/"
-      }
-    }
-  }
-
-  job_resources {
-    cluster_config {
-      instance_count    = 1
-      instance_type     = "ml.m5.large"
-      volume_size_in_gb = 20
-    }
-  }
-
-  stopping_condition {
-    max_runtime_in_seconds = 1800
-  }
-}
-
-
-resource "aws_sagemaker_monitoring_schedule" "car_detect_data_quality_monitoring" {
-  name = "car-detect-monitoring-schedule"
-
-  monitoring_schedule_config {
-    monitoring_type                = "DataQuality"
-    monitoring_job_definition_name = aws_sagemaker_data_quality_job_definition.car_detect_job_def.name
-
-    schedule_config {
-      schedule_expression = "cron(0 * ? * * *)"
-    }
-  }
-}
-
 data "aws_ecr_repository" "lpr_detect" {
   name = "lpr-detect"
 }
@@ -196,7 +139,7 @@ resource "aws_sagemaker_model" "lpr_detect_model" {
   execution_role_arn = aws_iam_role.sagemaker_execution_role.arn
 
   primary_container {
-    image = "${data.aws_ecr_repository.lpr_detect.repository_url}@sha256:a34efc3b6283e9c1970da7c98d91a662a91bf08a7c8366e1b56a964e18ee74e0"
+    image = "${data.aws_ecr_repository.lpr_detect.repository_url}@sha256:85c61473c2c0e3f80ee60ec2d8094722a37f02ca69b8125e6340bfeeb8bd3da9"
     # If your model is contained in the Docker image, you don't need model_data_url
   }
 
@@ -233,7 +176,7 @@ resource "aws_sagemaker_endpoint" "lpr_detect_endpoint" {
 
 # Create S3 bucket for feature store
 resource "aws_s3_bucket" "feature_store" {
-  bucket = "spot-model-artifacts-${random_id.suffix.hex}"
+  bucket = "spot-feature-store-${random_id.feature_store_suffix.hex}"
 }
 
 # IAM Role for SageMaker Feature Group
@@ -266,7 +209,8 @@ resource "aws_iam_policy" "feature_store_policy" {
         Action = [
           "s3:GetObject",
           "s3:ListBucket",
-          "s3:PutObject"
+          "s3:PutObject",
+          "s3:GetBucketAcl"
         ]
         Effect = "Allow"
         Resource = [
