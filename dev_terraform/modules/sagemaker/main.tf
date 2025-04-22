@@ -139,7 +139,7 @@ resource "aws_sagemaker_model" "lpr_detect_model" {
   execution_role_arn = aws_iam_role.sagemaker_execution_role.arn
 
   primary_container {
-    image = "${data.aws_ecr_repository.lpr_detect.repository_url}@sha256:85c61473c2c0e3f80ee60ec2d8094722a37f02ca69b8125e6340bfeeb8bd3da9"
+    image = "${data.aws_ecr_repository.lpr_detect.repository_url}@sha256:3193c58b237a1449a1ab9007f43a32ac13043a864c8711186c13848c8265e3c2"
     # If your model is contained in the Docker image, you don't need model_data_url
   }
 
