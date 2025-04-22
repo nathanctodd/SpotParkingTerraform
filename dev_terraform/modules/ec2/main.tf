@@ -138,6 +138,16 @@ resource "aws_iam_role_policy_attachment" "star_command_ecr_access" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
+resource "aws_iam_role_policy_attachment" "star_command_cloudwatch_logs" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "star_command_cloudwatch_full" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+}
+
 resource "aws_iam_instance_profile" "star_command_ec2_profile" {
   name = "star_command_instance_profile"
   role = aws_iam_role.ec2_role.name
@@ -169,7 +179,14 @@ resource "aws_instance" "star_command_ec2" {
 
               # Pull and run your Docker image
               docker pull ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.star_command_image_name}:latest
-              docker run -d -p 80:8000 ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.star_command_image_name}:latest
+              docker run -d \
+                --log-driver=awslogs \
+                --log-opt awslogs-region=${var.aws_region} \
+                --log-opt awslogs-group=/ec2/star-command \
+                --log-opt awslogs-stream=star-command-$(hostname) \
+                --log-opt awslogs-create-group=true \
+                -p 80:8000 \
+                ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.star_command_image_name}:latest
               EOF
 
   tags = {
@@ -277,6 +294,16 @@ resource "aws_iam_instance_profile" "voyager_tracking_ec2_profile" {
   role = aws_iam_role.ec2_role.name
 }
 
+resource "aws_iam_role_policy_attachment" "voyager_tracking_cloudwatch_logs" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "voyager_tracking_cloudwatch_full" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+}
+
 resource "aws_instance" "voyager_tracking_ec2" {
   ami                    = "ami-067198c5ae913ba30" # Amazon Linux 2 AMI
   instance_type          = "t2.micro" # Change to bigger instance type if needed
@@ -301,7 +328,14 @@ resource "aws_instance" "voyager_tracking_ec2" {
 
               # Pull and run your Docker image
               docker pull ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.voyager_tracking_image_name}:latest
-              docker run -d -p 80:8000 ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.voyager_tracking_image_name}:latest
+              docker run -d \
+                --log-driver=awslogs \
+                --log-opt awslogs-region=${var.aws_region} \
+                --log-opt awslogs-group=/ec2/voyager-tracking \
+                --log-opt awslogs-stream=voyager-tracking-$(hostname) \
+                --log-opt awslogs-create-group=true \
+                -p 80:8000 \
+                ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.voyager_tracking_image_name}:latest
               EOF
 
   tags = {
@@ -398,6 +432,16 @@ resource "aws_iam_role_policy_attachment" "kirk_event_manager_ecr_access" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
+resource "aws_iam_role_policy_attachment" "kirk_event_manager_cloudwatch_logs" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "kirk_event_manager_cloudwatch_full" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+}
+
 resource "aws_iam_instance_profile" "kirk_event_manager_ec2_profile" {
   name = "kirk_event_manager_instance_profile"
   role = aws_iam_role.ec2_role.name
@@ -427,7 +471,14 @@ resource "aws_instance" "kirk_event_manager_ec2" {
 
               # Pull and run your Docker image
               docker pull ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.kirk_event_manager_image_name}:latest
-              docker run -d -p 80:8000 ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.kirk_event_manager_image_name}:latest
+              docker run -d \
+                --log-driver=awslogs \
+                --log-opt awslogs-region=${var.aws_region} \
+                --log-opt awslogs-group=/ec2/kirk-event-manager \
+                --log-opt awslogs-stream=kirk-event-manager-$(hostname) \
+                --log-opt awslogs-create-group=true \
+                -p 80:8000 \
+                ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.kirk_event_manager_image_name}:latest
               EOF
 
   tags = {
@@ -435,6 +486,55 @@ resource "aws_instance" "kirk_event_manager_ec2" {
   }
 }
 
+# Add DynamoDB write access policy
+resource "aws_iam_policy" "kirk_event_manager_dynamodb" {
+  name        = "KirkEventManagerDynamoDBWrite"
+  description = "Allow write access to DynamoDB `event` table"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "DynamoDBWriteAccess",
+        Effect = "Allow",
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:DeleteItem"
+        ],
+        Resource = [
+          "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/events", // TODO: Replace `events` with TF ouput from dyanmodb module
+          "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/events/index/*"
+        ]
+      },
+      {
+        Sid    = "DynamoDBDescribeTable",
+        Effect = "Allow",
+        Action = "dynamodb:DescribeTable",
+        Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/events"
+      }
+    ]
+  })
+}
+
+# Attach policy to existing EC2 role
+resource "aws_iam_role_policy_attachment" "kirk_event_manager_dynamodb" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = aws_iam_policy.kirk_event_manager_dynamodb.arn
+}
 
 
-# TODO: give kirk event manager access to DynamoDB
+# CloudWatch Logs
+
+resource "aws_cloudwatch_log_group" "star_command" {
+  name = "/ec2/star_command"
+}
+
+resource "aws_cloudwatch_log_group" "voyager_tracking" {
+  name = "/ec2/voyager_tracking"
+}
+
+resource "aws_cloudwatch_log_group" "kirk_event_manager" {
+  name = "/ec2/kirk_event_manager"
+}
