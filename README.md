@@ -122,7 +122,7 @@ A working formatted version:
 docker run -d --name voyager-tracking \
 -p 80:8000 \
 442426871585.dkr.ecr.us-west-1.amazonaws.com/voyager-tracking:latest
-``
+```
 
 
 *Adjust volumes, environment variables, or other flags as needed*
