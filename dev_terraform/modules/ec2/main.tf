@@ -523,18 +523,3 @@ resource "aws_iam_role_policy_attachment" "kirk_event_manager_dynamodb" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = aws_iam_policy.kirk_event_manager_dynamodb.arn
 }
-
-
-# CloudWatch Logs
-
-resource "aws_cloudwatch_log_group" "star_command" {
-  name = "/ec2/star_command"
-}
-
-resource "aws_cloudwatch_log_group" "voyager_tracking" {
-  name = "/ec2/voyager_tracking"
-}
-
-resource "aws_cloudwatch_log_group" "kirk_event_manager" {
-  name = "/ec2/kirk_event_manager"
-}
